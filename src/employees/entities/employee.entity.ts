@@ -1,12 +1,11 @@
 import {
-  Entity,
   Column,
+  Entity,
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Role } from '../../common/enums/role.enum';
-import { ContractType } from '../../common/enums/contract-type.enum';
 
 @Entity()
 export class Employee {
@@ -34,26 +33,26 @@ export class Employee {
   @Column({ type: 'enum', enum: Role })
   role: Role;
 
-  @Column({ type: 'date' })
+  @Column()
   contractStartDate: Date;
 
-  @Column({ type: 'date', nullable: true })
-  contractEndDate?: Date;
+  @Column({ nullable: true })
+  contractEndDate: Date;
 
-  @Column({ type: 'enum', enum: ContractType })
-  contractType: ContractType;
+  @Column({ nullable: true })
+  contractType: string;
 
-  @Column()
+  @Column({ nullable: true })
   location: string;
 
-  @Column()
+  @Column({ nullable: true })
   position: string;
 
   @Column({ nullable: true })
-  resetToken?: string;
+  resetToken: string;
 
-  @Column({ type: 'timestamp', nullable: true })
-  resetTokenExpiresAt?: Date;
+  @Column({ nullable: true })
+  resetTokenExpiresAt: Date;
 
   @Column({ default: true })
   isActive: boolean;

@@ -1,36 +1,51 @@
-import { IsEmail, IsString, MinLength, IsEnum, Matches } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEmail,
+  IsEnum,
+  IsDateString,
+} from 'class-validator';
 import { Role } from '../../common/enums/role.enum';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterDto {
-  @ApiProperty()
+  @ApiProperty({ example: 'Tapiwanashe' })
   @IsString()
+  @IsNotEmpty()
   firstName: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'Shoshore' })
   @IsString()
+  @IsNotEmpty()
   lastName: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'tapiwanasheshoshore@gmail.com' })
   @IsEmail()
+  @IsNotEmpty()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: '123456' })
   @IsString()
-  @Matches(/^[A-Za-z0-9]+$/)
+  @IsNotEmpty()
   employeeNumber: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: '0771792254' })
   @IsString()
-  @Matches(/^\+?[1-9]\d{1,14}$/)
+  @IsNotEmpty()
   phoneNumber: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'password' })
   @IsString()
-  @MinLength(8)
+  @IsNotEmpty()
   password: string;
 
-  @ApiProperty({ enum: Role })
+  @ApiProperty({ enum: Role, example: Role.ADMIN })
   @IsEnum(Role)
+  @IsNotEmpty()
   role: Role;
+
+  @ApiProperty({ example: '2025-04-27' })
+  @IsDateString()
+  @IsNotEmpty()
+  contractStartDate: string;
 }
