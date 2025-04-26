@@ -1,29 +1,36 @@
-import { IsEmail, IsNotEmpty, MinLength, IsString, Matches } from 'class-validator';
+import { IsEmail, IsString, MinLength, IsEnum, Matches } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { Role } from '../../common/enums/role.enum';
 
 export class RegisterDto {
-  @IsEmail({}, { message: 'Please provide a valid email address' })
-  @IsNotEmpty({ message: 'Email is required' })
-  email: string;
-
-  @IsNotEmpty({ message: 'Password is required' })
-  @MinLength(6, { message: 'Password must be at least 6 characters long' })
-  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
-    message: 'Password must contain at least 1 uppercase letter, 1 lowercase letter, and 1 number or special character',
-  })
-  password: string;
-
-  @IsNotEmpty({ message: 'Password confirmation is required' })
-  passwordConfirm: string;
-
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty({ message: 'First name is required' })
   firstName: string;
 
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty({ message: 'Last name is required' })
   lastName: string;
 
+  @ApiProperty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty({ message: 'Invitation token is required' })
-  token: string;
+  @Matches(/^[A-Za-z0-9]+$/)
+  employeeNumber: string;
+
+  @ApiProperty()
+  @IsString()
+  @Matches(/^\+?[1-9]\d{1,14}$/)
+  phoneNumber: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(8)
+  password: string;
+
+  @ApiProperty({ enum: Role })
+  @IsEnum(Role)
+  role: Role;
 }

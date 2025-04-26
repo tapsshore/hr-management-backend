@@ -1,40 +1,52 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, Get, Param, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Query,
+  HttpCode,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Register a new user' })
+  @Post('register')
+  async register(
+    @Body() registerDto: RegisterDto,
+    @Query('invitationToken') invitationToken?: string,
+  ) {
+    return this.authService.register(registerDto, invitationToken);
+  }
+
+  @ApiOperation({ summary: 'Login with email and password' })
+  @HttpCode(200)
   @Post('login')
-  @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
-  @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  @ApiOperation({ summary: 'Refresh JWT token' })
+  @Post('refresh')
+  async refresh(@Body('refreshToken') refreshToken: string) {
+    return this.authService.refreshToken(refreshToken);
   }
 
-  @Post('password-reset-request')
-  @HttpCode(HttpStatus.OK)
-  async requestPasswordReset(@Body('email') email: string) {
-    return this.authService.requestPasswordReset(email);
+  @ApiOperation({ summary: 'Request password reset' })
+  @Post('forgot-password')
+  async forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
   }
 
-  @Post('password-reset')
-  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password with token' })
+  @Post('reset-password')
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
     return this.authService.resetPassword(resetPasswordDto);
-  }
-
-  @Get('profile')
-  @UseGuards(JwtAuthGuard)
-  getProfile(@Request() req) {
-    return req.user;
   }
 }

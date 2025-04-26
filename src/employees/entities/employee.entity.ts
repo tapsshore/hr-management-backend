@@ -1,18 +1,17 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Role } from '../../common/enums/role.enum';
 import { ContractType } from '../../common/enums/contract-type.enum';
-import { Document } from '../../documents/entities/document.entity';
 
-@Entity('employees')
+@Entity()
 export class Employee {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column({ unique: true })
-  email: string;
-
-  @Column()
-  password: string;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   firstName: string;
@@ -20,29 +19,44 @@ export class Employee {
   @Column()
   lastName: string;
 
-  @Column({ type: 'enum', enum: Role, array: true, default: [Role.EMPLOYEE] })
-  roles: Role[];
+  @Column({ unique: true })
+  email: string;
 
-  @Column({ nullable: true })
+  @Column({ unique: true })
+  employeeNumber: string;
+
+  @Column()
+  phoneNumber: string;
+
+  @Column()
+  password: string;
+
+  @Column({ type: 'enum', enum: Role })
+  role: Role;
+
+  @Column({ type: 'date' })
+  contractStartDate: Date;
+
+  @Column({ type: 'date', nullable: true })
+  contractEndDate?: Date;
+
+  @Column({ type: 'enum', enum: ContractType })
+  contractType: ContractType;
+
+  @Column()
+  location: string;
+
+  @Column()
   position: string;
 
   @Column({ nullable: true })
-  department: string;
+  resetToken?: string;
 
-  @Column({ type: 'enum', enum: ContractType, default: ContractType.PERMANENT })
-  contractType: ContractType;
-
-  @Column({ nullable: true })
-  startDate: Date;
-
-  @Column({ nullable: true })
-  endDate: Date;
+  @Column({ type: 'timestamp', nullable: true })
+  resetTokenExpiresAt?: Date;
 
   @Column({ default: true })
   isActive: boolean;
-
-  @OneToMany(() => Document, document => document.employee)
-  documents: Document[];
 
   @CreateDateColumn()
   createdAt: Date;

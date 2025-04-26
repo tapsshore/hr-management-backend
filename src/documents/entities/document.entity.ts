@@ -1,42 +1,39 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  ManyToOne,
+} from 'typeorm';
 import { DocumentType } from '../../common/enums/document-type.enum';
 import { Employee } from '../../employees/entities/employee.entity';
 
-@Entity('documents')
+@Entity()
 export class Document {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
-  name: string;
+  employeeNumber: string;
 
-  @Column({ nullable: true })
-  description: string;
-
-  @Column({ type: 'enum', enum: DocumentType, default: DocumentType.OTHER })
-  type: DocumentType;
+  @Column({ type: 'enum', enum: DocumentType })
+  documentType: DocumentType;
 
   @Column()
-  fileKey: string;
+  fileName: string;
 
   @Column()
-  fileSize: number;
+  filePath: string;
 
   @Column()
-  mimeType: string;
-
-  @ManyToOne(() => Employee, employee => employee.documents)
-  employee: Employee;
-
-  @Column()
-  employeeId: number;
-
-  @Column({ default: true })
-  isActive: boolean;
+  uploadedBy: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  uploadDate: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+  @Column({ default: 'Active' })
+  status: string;
+
+  @ManyToOne(() => Employee)
+  employee: Employee;
 }

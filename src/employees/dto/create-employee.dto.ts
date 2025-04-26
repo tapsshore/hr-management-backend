@@ -1,49 +1,60 @@
-import { IsEmail, IsNotEmpty, IsString, IsOptional, IsEnum, IsArray, IsDate, IsBoolean } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsEmail,
+  Matches,
+  IsEnum,
+  IsDateString,
+  IsOptional,
+} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 import { Role } from '../../common/enums/role.enum';
 import { ContractType } from '../../common/enums/contract-type.enum';
 
 export class CreateEmployeeDto {
-  @IsEmail({}, { message: 'Please provide a valid email address' })
-  @IsNotEmpty({ message: 'Email is required' })
-  email: string;
-
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty({ message: 'First name is required' })
   firstName: string;
 
+  @ApiProperty()
   @IsString()
-  @IsNotEmpty({ message: 'Last name is required' })
   lastName: string;
 
-  @IsArray()
-  @IsEnum(Role, { each: true })
-  @IsOptional()
-  roles?: Role[];
+  @ApiProperty()
+  @IsEmail()
+  email: string;
 
+  @ApiProperty()
   @IsString()
-  @IsOptional()
-  position?: string;
+  @Matches(/^[A-Za-z0-9]+$/)
+  employeeNumber: string;
 
+  @ApiProperty()
   @IsString()
-  @IsOptional()
-  department?: string;
+  @Matches(/^\+?[1-9]\d{1,14}$/)
+  phoneNumber: string;
 
+  @ApiProperty()
+  @IsEnum(Role)
+  role: Role;
+
+  @ApiProperty()
+  @IsDateString()
+  contractStartDate: Date;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsDateString()
+  contractEndDate?: Date;
+
+  @ApiProperty()
   @IsEnum(ContractType)
-  @IsOptional()
-  contractType?: ContractType;
+  contractType: ContractType;
 
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  startDate?: Date;
+  @ApiProperty()
+  @IsString()
+  location: string;
 
-  @IsDate()
-  @Type(() => Date)
-  @IsOptional()
-  endDate?: Date;
-
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
+  @ApiProperty()
+  @IsString()
+  position: string;
 }

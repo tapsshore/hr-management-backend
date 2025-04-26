@@ -1,48 +1,37 @@
-import { Controller, Get, Post, Body, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+  Query,
+} from '@nestjs/common';
 import { InvitationsService } from './invitations.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
+import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 
+@ApiTags('invitations')
+@ApiBearerAuth()
 @Controller('invitations')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InvitationsController {
   constructor(private readonly invitationsService: InvitationsService) {}
 
+  @ApiOperation({ summary: 'Create an invitation' })
+  @Roles(Role.ADMIN, Role.HR_MANAGER)
   @Post()
-  @Roles(Role.ADMIN, Role.HR)
-  create(@Body() createInvitationDto: CreateInvitationDto) {
-    return this.invitationsService.create(createInvitationDto);
+  create(@Body() createInvitationDto: CreateInvitationDto, @Request() req) {
+    return this.invitationsService.create(createInvitationDto, req.user);
   }
 
-  @Get()
-  @Roles(Role.ADMIN, Role.HR)
-  findAll() {
-    return this.invitationsService.findAll();
-  }
-
-  @Get(':id')
-  @Roles(Role.ADMIN, Role.HR)
-  findOne(@Param('id') id: string) {
-    return this.invitationsService.findOne(+id);
-  }
-
-  @Get('token/:token')
-  findByToken(@Param('token') token: string) {
-    return this.invitationsService.findByToken(token);
-  }
-
-  @Post(':id/resend')
-  @Roles(Role.ADMIN, Role.HR)
-  resend(@Param('id') id: string) {
-    return this.invitationsService.resend(+id);
-  }
-
-  @Delete(':id')
-  @Roles(Role.ADMIN, Role.HR)
-  remove(@Param('id') id: string) {
-    return this.invitationsService.remove(+id);
+  @ApiOperation({ summary: 'Validate an invitation token' })
+  @Get('validate')
+  validateToken(@Query('token') token: string) {
+    return this.invitationsService.validateToken(token);
   }
 }

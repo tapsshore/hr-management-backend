@@ -1,13 +1,21 @@
-import { Injectable, UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
+import { MoreThan } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { Employee } from '../employees/entities/employee.entity';
 import { Invitation } from '../invitations/entities/invitation.entity';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { Role } from '../common/enums/role.enum';
+import { ConfigService } from '@nestjs/config';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -17,126 +25,144 @@ export class AuthService {
     @InjectRepository(Invitation)
     private invitationRepository: Repository<Invitation>,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
-  async login(loginDto: LoginDto) {
-    const { email, password } = loginDto;
-    
-    const employee = await this.employeeRepository.findOne({ where: { email } });
-    if (!employee) {
-      throw new UnauthorizedException('Invalid credentials');
+  async register(
+    registerDto: RegisterDto,
+    invitationToken?: string,
+  ): Promise<Employee> {
+    if (registerDto.role !== Role.ADMIN && !invitationToken) {
+      throw new BadRequestException(
+        'Invitation token required for non-admin registration',
+      );
     }
 
-    if (!employee.isActive) {
-      throw new UnauthorizedException('Your account is inactive');
+    if (invitationToken) {
+      const invitation = await this.invitationRepository.findOne({
+        where: { token: invitationToken },
+      });
+      if (!invitation || invitation.expiresAt < new Date()) {
+        throw new BadRequestException('Invalid or expired invitation token');
+      }
+      if (invitation.email !== registerDto.email) {
+        throw new BadRequestException('Email does not match invitation');
+      }
+      registerDto.role = invitation.role;
     }
 
-    const isPasswordValid = await bcrypt.compare(password, employee.password);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    const payload = { 
-      sub: employee.id, 
-      email: employee.email,
-      roles: employee.roles 
-    };
-    
-    return {
-      accessToken: this.jwtService.sign(payload),
-      user: {
-        id: employee.id,
-        email: employee.email,
-        firstName: employee.firstName,
-        lastName: employee.lastName,
-        roles: employee.roles,
-      },
-    };
-  }
-
-  async register(registerDto: RegisterDto) {
-    const { email, password, passwordConfirm, firstName, lastName, token } = registerDto;
-
-    if (password !== passwordConfirm) {
-      throw new BadRequestException('Passwords do not match');
-    }
-
-    const invitation = await this.invitationRepository.findOne({ 
-      where: { token, email, isAccepted: false, isExpired: false } 
+    const existingEmployee = await this.employeeRepository.findOne({
+      where: [
+        { email: registerDto.email },
+        { employeeNumber: registerDto.employeeNumber },
+      ],
     });
-
-    if (!invitation) {
-      throw new BadRequestException('Invalid or expired invitation token');
-    }
-
-    if (new Date() > invitation.expiresAt) {
-      invitation.isExpired = true;
-      await this.invitationRepository.save(invitation);
-      throw new BadRequestException('Invitation has expired');
-    }
-
-    const existingEmployee = await this.employeeRepository.findOne({ where: { email } });
     if (existingEmployee) {
-      throw new BadRequestException('Email already in use');
+      throw new BadRequestException('Email or employee number already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
+    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
     const employee = this.employeeRepository.create({
-      email,
+      ...registerDto,
       password: hashedPassword,
-      firstName,
-      lastName,
-      roles: invitation.roles,
-      position: invitation.position,
-      department: invitation.department,
-      isActive: true,
     });
 
-    await this.employeeRepository.save(employee);
+    const savedEmployee = await this.employeeRepository.save(employee);
+    if (invitationToken) {
+      await this.invitationRepository.delete({ token: invitationToken });
+    }
 
-    invitation.isAccepted = true;
-    invitation.acceptedAt = new Date();
-    await this.invitationRepository.save(invitation);
+    delete savedEmployee.password;
+    return savedEmployee;
+  }
 
-    const payload = { 
-      sub: employee.id, 
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
+    const employee = await this.employeeRepository.findOne({
+      where: { email: loginDto.email },
+    });
+    if (
+      !employee ||
+      !(await bcrypt.compare(loginDto.password, employee.password))
+    ) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const payload = {
+      sub: employee.id,
       email: employee.email,
-      roles: employee.roles 
+      role: employee.role,
+      employeeNumber: employee.employeeNumber,
     };
-    
-    return {
-      accessToken: this.jwtService.sign(payload),
-      user: {
-        id: employee.id,
+    const accessToken = this.jwtService.sign(payload);
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+    });
+
+    return { accessToken, refreshToken };
+  }
+
+  async refreshToken(refreshToken: string): Promise<{ accessToken: string }> {
+    try {
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+      });
+      const employee = await this.employeeRepository.findOne({
+        where: { id: payload.sub },
+      });
+      if (!employee) throw new UnauthorizedException('Invalid refresh token');
+
+      const newPayload = {
+        sub: employee.id,
         email: employee.email,
-        firstName: employee.firstName,
-        lastName: employee.lastName,
-        roles: employee.roles,
-      },
-    };
+        role: employee.role,
+        employeeNumber: employee.employeeNumber,
+      };
+      return { accessToken: this.jwtService.sign(newPayload) };
+    } catch {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
-  async requestPasswordReset(email: string) {
-    const employee = await this.employeeRepository.findOne({ where: { email } });
+  async forgotPassword(email: string): Promise<void> {
+    const employee = await this.employeeRepository.findOne({
+      where: { email },
+    });
     if (!employee) {
-      throw new NotFoundException('Employee not found');
+      return; // Silently fail to prevent email enumeration
     }
 
-    // In a real application, you would generate a token, save it, and send an email
-    // For this example, we'll just return a success message
-    return { message: 'Password reset instructions sent to your email' };
+    const resetToken = uuidv4();
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+    await this.employeeRepository.update(employee.id, {
+      resetToken,
+      resetTokenExpiresAt: expiresAt,
+    });
+
+    // TODO: Send email with reset link (e.g., http://frontend.com/reset-password?token=resetToken)
+    console.log(
+      `Reset link: http://localhost:3000/auth/reset-password?token=${resetToken}`,
+    );
   }
 
-  async resetPassword(resetPasswordDto: ResetPasswordDto) {
-    const { token, password, passwordConfirm } = resetPasswordDto;
-
-    if (password !== passwordConfirm) {
-      throw new BadRequestException('Passwords do not match');
+  async resetPassword(dto: ResetPasswordDto): Promise<void> {
+    const employee = await this.employeeRepository.findOne({
+      where: {
+        resetToken: dto.token,
+        resetTokenExpiresAt: MoreThan(new Date()),
+      },
+    });
+    if (!employee) {
+      throw new BadRequestException('Invalid or expired reset token');
     }
 
-    // In a real application, you would validate the token and find the employee
-    // For this example, we'll just return a success message
-    return { message: 'Password has been reset successfully' };
+    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    await this.employeeRepository.update(employee.id, {
+      password: hashedPassword,
+      resetToken: null,
+      resetTokenExpiresAt: null,
+    });
   }
 }

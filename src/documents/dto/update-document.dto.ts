@@ -1,20 +1,20 @@
-import { IsString, IsOptional, IsEnum, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsEnum } from 'class-validator';
 import { DocumentType } from '../../common/enums/document-type.enum';
 
 export class UpdateDocumentDto {
   @IsString()
   @IsOptional()
-  name?: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
+  employeeNumber?: string;
 
   @IsEnum(DocumentType)
   @IsOptional()
-  type?: DocumentType;
+  documentType?: DocumentType;
 
-  @IsBoolean()
+  @IsString()
   @IsOptional()
-  isActive?: boolean;
+  fileName?: string;
+
+  @IsString()
+  @IsOptional()
+  filePath?: string;
 }

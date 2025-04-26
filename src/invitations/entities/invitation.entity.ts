@@ -1,47 +1,28 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { Role } from '../../common/enums/role.enum';
 
-@Entity('invitations')
+@Entity()
 export class Invitation {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
-
-  @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
-
-  @Column({ type: 'enum', enum: Role, array: true, default: [Role.EMPLOYEE] })
-  roles: Role[];
-
-  @Column({ nullable: true })
-  position: string;
-
-  @Column({ nullable: true })
-  department: string;
 
   @Column()
   token: string;
 
-  @Column({ default: false })
-  isAccepted: boolean;
+  @Column({ type: 'enum', enum: Role })
+  role: Role;
 
-  @Column({ default: false })
-  isExpired: boolean;
-
-  @Column()
+  @Column({ type: 'timestamp' })
   expiresAt: Date;
-
-  @Column({ nullable: true })
-  acceptedAt: Date;
 
   @CreateDateColumn()
   createdAt: Date;
-
-  @UpdateDateColumn()
-  updatedAt: Date;
 }
