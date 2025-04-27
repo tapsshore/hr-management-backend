@@ -4,6 +4,7 @@ import { AuthController } from './auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Employee } from '../employees/entities/employee.entity';
 import { Invitation } from '../invitations/entities/invitation.entity';
+import { TokenBlacklist } from './entities/token-blacklist.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -11,7 +12,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Employee, Invitation]),
+    TypeOrmModule.forFeature([Employee, Invitation, TokenBlacklist]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],

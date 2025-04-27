@@ -82,7 +82,9 @@ export class EmployeesService {
     }
 
     const employee = await this.findOne(employeeNumber, user);
+
     Object.assign(employee, updateEmployeeDto);
+
     return this.employeeRepository.save(employee);
   }
 

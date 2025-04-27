@@ -4,8 +4,11 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  BeforeInsert,
+  BeforeUpdate,
 } from 'typeorm';
 import { Role } from '../../common/enums/role.enum';
+import * as bcrypt from 'bcryptjs';
 
 @Entity()
 export class Employee {
@@ -62,4 +65,12 @@ export class Employee {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @BeforeInsert()
+  @BeforeUpdate()
+  async hashPassword() {
+    if (this.password) {
+      this.password = await bcrypt.hash(this.password, 10);
+    }
+  }
 }

@@ -3,11 +3,12 @@ import {
   UnauthorizedException,
   BadRequestException,
 } from '@nestjs/common';
-import { MoreThan } from 'typeorm';
+import { MoreThan, LessThan } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Employee } from '../employees/entities/employee.entity';
 import { Invitation } from '../invitations/entities/invitation.entity';
+import { TokenBlacklist } from './entities/token-blacklist.entity';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
@@ -24,9 +25,14 @@ export class AuthService {
     private employeeRepository: Repository<Employee>,
     @InjectRepository(Invitation)
     private invitationRepository: Repository<Invitation>,
+    @InjectRepository(TokenBlacklist)
+    private tokenBlacklistRepository: Repository<TokenBlacklist>,
     private jwtService: JwtService,
     private configService: ConfigService,
-  ) {}
+  ) {
+    // Clean up expired blacklisted tokens periodically
+    setInterval(() => this.cleanupBlacklist(), 3600000); // Run every hour
+  }
 
   async register(
     registerDto: RegisterDto,
@@ -112,7 +118,9 @@ export class AuthService {
       const employee = await this.employeeRepository.findOne({
         where: { id: payload.sub },
       });
-      if (!employee) throw new UnauthorizedException('Invalid refresh token');
+      if (!employee) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
 
       const newPayload = {
         sub: employee.id,
@@ -164,5 +172,39 @@ export class AuthService {
       resetToken: null,
       resetTokenExpiresAt: null,
     });
+  }
+
+  async logout(token: string): Promise<void> {
+    try {
+      const decoded = this.jwtService.verify(token);
+      const expiresAt = new Date(decoded.exp * 1000);
+      await this.tokenBlacklistRepository.save({
+        token,
+        expiresAt,
+      });
+    } catch (error) {
+      console.log('Invalid token provided for logout:', error.message);
+    }
+  }
+
+  async isTokenBlacklisted(token: string): Promise<boolean> {
+    const blacklistedToken = await this.tokenBlacklistRepository.findOne({
+      where: { token },
+    });
+    return !!blacklistedToken;
+  }
+
+  private async cleanupBlacklist(): Promise<void> {
+    try {
+      // Remove all expired tokens from the blacklist
+      const result = await this.tokenBlacklistRepository.delete({
+        expiresAt: LessThan(new Date()),
+      });
+      console.log(
+        `Cleaned up ${result.affected} expired tokens from blacklist`,
+      );
+    } catch (error) {
+      console.error('Error cleaning up token blacklist:', error);
+    }
   }
 }

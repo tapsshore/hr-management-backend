@@ -57,4 +57,8 @@ export class CreateEmployeeDto {
   @ApiProperty()
   @IsString()
   position: string;
+
+  @ApiProperty()
+  @IsString()
+  password: string;
 }
