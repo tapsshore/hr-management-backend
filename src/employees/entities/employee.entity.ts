@@ -6,9 +6,12 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
 import { Role } from '../../common/enums/role.enum';
 import * as bcrypt from 'bcryptjs';
+import { Department } from '../../departments/entities/department.entity';
 
 @Entity()
 export class Employee {
@@ -50,6 +53,13 @@ export class Employee {
 
   @Column({ nullable: true })
   position: string;
+
+  @ManyToOne(() => Department, { nullable: true })
+  @JoinColumn({ name: 'departmentId' })
+  department: Department;
+
+  @Column({ nullable: true })
+  departmentId: string;
 
   @Column({ nullable: true })
   resetToken: string;
