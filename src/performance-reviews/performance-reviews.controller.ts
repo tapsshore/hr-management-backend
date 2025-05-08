@@ -23,13 +23,18 @@ import { ReviewStatus } from './entities/performance-review.entity';
 @Controller('performance-reviews')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class PerformanceReviewsController {
-  constructor(private readonly performanceReviewsService: PerformanceReviewsService) {}
+  constructor(
+    private readonly performanceReviewsService: PerformanceReviewsService,
+  ) {}
 
   @ApiOperation({ summary: 'Create a new performance review' })
   @Roles(Role.ADMIN, Role.HR_MANAGER, Role.MANAGER)
   @Post()
   create(@Body() createReviewDto: CreatePerformanceReviewDto, @Request() req) {
-    return this.performanceReviewsService.create(createReviewDto, req.user.employeeNumber);
+    return this.performanceReviewsService.create(
+      createReviewDto,
+      req.user.employeeNumber,
+    );
   }
 
   @ApiOperation({ summary: 'Get all performance reviews' })

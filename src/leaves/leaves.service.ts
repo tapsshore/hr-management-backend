@@ -17,7 +17,10 @@ export class LeavesService {
     private leaveRepository: Repository<Leave>,
   ) {}
 
-  async create(createLeaveDto: CreateLeaveDto, employeeId: string): Promise<Leave> {
+  async create(
+    createLeaveDto: CreateLeaveDto,
+    employeeId: string,
+  ): Promise<Leave> {
     const leave = this.leaveRepository.create({
       ...createLeaveDto,
       employeeId,

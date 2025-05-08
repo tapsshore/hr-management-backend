@@ -10,4 +10,4 @@ import { Payroll } from './entities/payroll.entity';
   providers: [PayrollService],
   exports: [PayrollService],
 })
-export class PayrollModule {} 
+export class PayrollModule {}

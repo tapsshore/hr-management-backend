@@ -10,4 +10,4 @@ import { Leave } from './entities/leave.entity';
   providers: [LeavesService],
   exports: [LeavesService],
 })
-export class LeavesModule {} 
+export class LeavesModule {}

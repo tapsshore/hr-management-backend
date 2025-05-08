@@ -10,4 +10,4 @@ import { PerformanceReview } from './entities/performance-review.entity';
   providers: [PerformanceReviewsService],
   exports: [PerformanceReviewsService],
 })
-export class PerformanceReviewsModule {} 
+export class PerformanceReviewsModule {}

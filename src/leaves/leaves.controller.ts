@@ -56,7 +56,12 @@ export class LeavesController {
     @Body('rejectionReason') rejectionReason: string,
     @Request() req,
   ) {
-    return this.leavesService.updateStatus(id, status, req.user, rejectionReason);
+    return this.leavesService.updateStatus(
+      id,
+      status,
+      req.user,
+      rejectionReason,
+    );
   }
 
   @ApiOperation({ summary: 'Cancel a leave request' })

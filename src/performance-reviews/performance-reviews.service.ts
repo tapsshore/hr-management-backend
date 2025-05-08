@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PerformanceReview, ReviewStatus } from './entities/performance-review.entity';
+import {
+  PerformanceReview,
+  ReviewStatus,
+} from './entities/performance-review.entity';
 import { CreatePerformanceReviewDto } from './dto/create-performance-review.dto';
 import { Role } from '../common/enums/role.enum';
 
@@ -17,7 +20,10 @@ export class PerformanceReviewsService {
     private performanceReviewRepository: Repository<PerformanceReview>,
   ) {}
 
-  async create(createReviewDto: CreatePerformanceReviewDto, reviewerId: string): Promise<PerformanceReview> {
+  async create(
+    createReviewDto: CreatePerformanceReviewDto,
+    reviewerId: string,
+  ): Promise<PerformanceReview> {
     const review = this.performanceReviewRepository.create({
       ...createReviewDto,
       reviewerId,
