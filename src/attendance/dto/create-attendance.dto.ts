@@ -1,6 +1,15 @@
-import { IsEnum, IsString, IsNotEmpty, IsDateString, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { AttendanceType, AttendanceStatus } from '../entities/attendance.entity';
+import {
+  AttendanceType,
+  AttendanceStatus,
+} from '../entities/attendance.entity';
 
 export class CreateAttendanceDto {
   @ApiProperty()
@@ -37,4 +46,4 @@ export class CreateAttendanceDto {
   @IsOptional()
   @IsString()
   notes?: string;
-} 
+}

@@ -38,10 +38,10 @@ export class Department {
   @Column({ nullable: true })
   parentDepartmentId: string;
 
-  @OneToMany(() => Department, department => department.parentDepartment)
+  @OneToMany(() => Department, (department) => department.parentDepartment)
   subDepartments: Department[];
 
-  @OneToMany(() => Employee, employee => employee.department)
+  @OneToMany(() => Employee, (employee) => employee.department)
   employees: Employee[];
 
   @Column({ default: true })
@@ -58,4 +58,4 @@ export class Department {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

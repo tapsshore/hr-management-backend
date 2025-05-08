@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  UseGuards,
-  Request,
-} from '@nestjs/common';
+import { Controller, Get, Param, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { DashboardService } from './dashboard.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -29,10 +23,7 @@ export class DashboardController {
   @Get('department/:id')
   @Roles(Role.ADMIN, Role.HR_MANAGER, Role.HR_OFFICER)
   @ApiOperation({ summary: 'Get department-specific dashboard statistics' })
-  getDepartmentDashboard(
-    @Param('id') id: string,
-    @Request() req,
-  ) {
+  getDepartmentDashboard(@Param('id') id: string, @Request() req) {
     return this.dashboardService.getDepartmentDashboard(id, req.user);
   }
-} 
+}

@@ -99,14 +99,18 @@ export class LeavesService {
     const leave = await this.findOne(id, user);
 
     if (leave.employeeId !== user.employeeNumber) {
-      throw new ForbiddenException('You can only cancel your own leave requests');
+      throw new ForbiddenException(
+        'You can only cancel your own leave requests',
+      );
     }
 
     if (leave.status !== LeaveStatus.PENDING) {
-      throw new BadRequestException('Only pending leave requests can be cancelled');
+      throw new BadRequestException(
+        'Only pending leave requests can be cancelled',
+      );
     }
 
     leave.status = LeaveStatus.CANCELLED;
     return this.leaveRepository.save(leave);
   }
-} 
+}

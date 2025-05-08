@@ -35,4 +35,4 @@ export class CreateDepartmentDto {
   @IsOptional()
   @IsString()
   location?: string;
-} 
+}

@@ -96,4 +96,4 @@ export class Payroll {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

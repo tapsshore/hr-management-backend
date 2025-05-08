@@ -1,4 +1,10 @@
-import { IsEnum, IsString, IsNotEmpty, IsDateString, IsOptional } from 'class-validator';
+import {
+  IsEnum,
+  IsString,
+  IsNotEmpty,
+  IsDateString,
+  IsOptional,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Rating } from '../entities/performance-review.entity';
 
@@ -47,4 +53,4 @@ export class CreatePerformanceReviewDto {
   @IsOptional()
   @IsDateString()
   nextReviewDate?: Date;
-} 
+}

@@ -1,4 +1,12 @@
-import { IsEnum, IsNumber, IsString, IsNotEmpty, IsOptional, IsDateString, Min, Max } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  Min,
+  Max,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { PaymentMethod } from '../entities/payroll.entity';
 
@@ -64,4 +72,4 @@ export class CreatePayrollDto {
   @IsOptional()
   @IsString()
   notes?: string;
-} 
+}

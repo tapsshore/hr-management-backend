@@ -1,14 +1,12 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Department } from './entities/department.entity';
 import { CreateDepartmentDto } from './dto/create-department.dto';
-import { Role } from '../common/enums/role.enum';
 
 @Injectable()
 export class DepartmentsService {
@@ -69,7 +67,9 @@ export class DepartmentsService {
       });
 
       if (existingDepartment && existingDepartment.id !== id) {
-        throw new BadRequestException('Department with this name already exists');
+        throw new BadRequestException(
+          'Department with this name already exists',
+        );
       }
     }
 
@@ -82,12 +82,16 @@ export class DepartmentsService {
 
     // Check if department has employees
     if (department.employees && department.employees.length > 0) {
-      throw new BadRequestException('Cannot delete department with active employees');
+      throw new BadRequestException(
+        'Cannot delete department with active employees',
+      );
     }
 
     // Check if department has sub-departments
     if (department.subDepartments && department.subDepartments.length > 0) {
-      throw new BadRequestException('Cannot delete department with sub-departments');
+      throw new BadRequestException(
+        'Cannot delete department with sub-departments',
+      );
     }
 
     department.isActive = false;
@@ -136,7 +140,9 @@ export class DepartmentsService {
     }
 
     const totalEmployees = department.employees.length;
-    const activeEmployees = department.employees.filter(emp => emp.isActive).length;
+    const activeEmployees = department.employees.filter(
+      (emp) => emp.isActive,
+    ).length;
     const roles = department.employees.reduce((acc, emp) => {
       acc[emp.role] = (acc[emp.role] || 0) + 1;
       return acc;
@@ -149,4 +155,4 @@ export class DepartmentsService {
       budget: department.budget,
     };
   }
-} 
+}

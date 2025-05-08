@@ -1,10 +1,17 @@
-import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, Not, IsNull } from 'typeorm';
+import { Repository, Not, IsNull } from 'typeorm';
 import { Employee } from '../employees/entities/employee.entity';
 import { Department } from '../departments/entities/department.entity';
 import { Leave, LeaveStatus } from '../leaves/entities/leave.entity';
-import { PerformanceReview, ReviewStatus } from '../performance-reviews/entities/performance-review.entity';
+import {
+  PerformanceReview,
+  ReviewStatus,
+} from '../performance-reviews/entities/performance-review.entity';
 import { Attendance } from '../attendance/entities/attendance.entity';
 import { Payroll } from '../payroll/entities/payroll.entity';
 import { Role } from '../common/enums/role.enum';
@@ -32,8 +39,16 @@ export class DashboardService {
     }
 
     const currentDate = new Date();
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1,
+    );
+    const endOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0,
+    );
 
     // Get employee statistics
     const totalEmployees = await this.employeeRepository.count();
@@ -132,8 +147,16 @@ export class DashboardService {
     }
 
     const currentDate = new Date();
-    const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-    const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+    const startOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      1,
+    );
+    const endOfMonth = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth() + 1,
+      0,
+    );
 
     // Get department details
     const department = await this.departmentRepository.findOne({
@@ -147,7 +170,9 @@ export class DashboardService {
 
     // Get employee statistics
     const totalEmployees = department.employees.length;
-    const activeEmployees = department.employees.filter(emp => emp.isActive).length;
+    const activeEmployees = department.employees.filter(
+      (emp) => emp.isActive,
+    ).length;
 
     // Get leave statistics
     const leaveStats = await this.leaveRepository
@@ -155,7 +180,7 @@ export class DashboardService {
       .select('leave.status', 'status')
       .addSelect('COUNT(*)', 'count')
       .where('leave.employeeId IN (:...employeeIds)', {
-        employeeIds: department.employees.map(emp => emp.id),
+        employeeIds: department.employees.map((emp) => emp.id),
       })
       .groupBy('leave.status')
       .getRawMany();
@@ -166,7 +191,7 @@ export class DashboardService {
       .select('review.status', 'status')
       .addSelect('COUNT(*)', 'count')
       .where('review.employeeId IN (:...employeeIds)', {
-        employeeIds: department.employees.map(emp => emp.id),
+        employeeIds: department.employees.map((emp) => emp.id),
       })
       .groupBy('review.status')
       .getRawMany();
@@ -177,7 +202,7 @@ export class DashboardService {
       .select('attendance.status', 'status')
       .addSelect('COUNT(*)', 'count')
       .where('attendance.employeeId IN (:...employeeIds)', {
-        employeeIds: department.employees.map(emp => emp.id),
+        employeeIds: department.employees.map((emp) => emp.id),
       })
       .andWhere('attendance.date BETWEEN :startDate AND :endDate', {
         startDate: startOfMonth,
@@ -193,7 +218,7 @@ export class DashboardService {
       .addSelect('COUNT(*)', 'count')
       .addSelect('SUM(payroll.netSalary)', 'totalAmount')
       .where('payroll.employeeId IN (:...employeeIds)', {
-        employeeIds: department.employees.map(emp => emp.id),
+        employeeIds: department.employees.map((emp) => emp.id),
       })
       .andWhere('payroll.month = :month AND payroll.year = :year', {
         month: currentDate.getMonth() + 1,
@@ -228,4 +253,4 @@ export class DashboardService {
       },
     };
   }
-} 
+}

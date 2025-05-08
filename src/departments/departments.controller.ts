@@ -33,10 +33,7 @@ export class DepartmentsController {
 
   @ApiOperation({ summary: 'Get all departments' })
   @Get()
-  findAll(
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-  ) {
+  findAll(@Query('page') page: number = 1, @Query('limit') limit: number = 10) {
     return this.departmentsService.findAll(page, limit);
   }
 
@@ -84,4 +81,4 @@ export class DepartmentsController {
   remove(@Param('id') id: string) {
     return this.departmentsService.remove(id);
   }
-} 
+}

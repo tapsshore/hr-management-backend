@@ -27,7 +27,10 @@ export class AttendanceController {
   @ApiOperation({ summary: 'Create a new attendance record' })
   @Post()
   create(@Body() createAttendanceDto: CreateAttendanceDto, @Request() req) {
-    return this.attendanceService.create(createAttendanceDto, req.user.employeeNumber);
+    return this.attendanceService.create(
+      createAttendanceDto,
+      req.user.employeeNumber,
+    );
   }
 
   @ApiOperation({ summary: 'Get all attendance records' })
@@ -39,7 +42,13 @@ export class AttendanceController {
     @Query('endDate') endDate: Date,
     @Request() req,
   ) {
-    return this.attendanceService.findAll(req.user, page, limit, startDate, endDate);
+    return this.attendanceService.findAll(
+      req.user,
+      page,
+      limit,
+      startDate,
+      endDate,
+    );
   }
 
   @ApiOperation({ summary: 'Get an attendance record by ID' })
@@ -79,6 +88,10 @@ export class AttendanceController {
     @Query('endDate') endDate: Date,
     @Request() req,
   ) {
-    return this.attendanceService.getAttendanceStats(startDate, endDate, req.user);
+    return this.attendanceService.getAttendanceStats(
+      startDate,
+      endDate,
+      req.user,
+    );
   }
-} 
+}

@@ -22,4 +22,4 @@ export class CreateLeaveDto {
   @IsString()
   @IsNotEmpty()
   reason: string;
-} 
+}

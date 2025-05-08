@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { Attendance, AttendanceType, AttendanceStatus } from './entities/attendance.entity';
+import { Attendance } from './entities/attendance.entity';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
 import { Role } from '../common/enums/role.enum';
 
@@ -17,7 +17,10 @@ export class AttendanceService {
     private attendanceRepository: Repository<Attendance>,
   ) {}
 
-  async create(createAttendanceDto: CreateAttendanceDto, employeeId: string): Promise<Attendance> {
+  async create(
+    createAttendanceDto: CreateAttendanceDto,
+    employeeId: string,
+  ): Promise<Attendance> {
     // Check if there's already a check-in/out for the same day and type
     const existingAttendance = await this.attendanceRepository.findOne({
       where: {
@@ -48,7 +51,8 @@ export class AttendanceService {
     startDate?: Date,
     endDate?: Date,
   ): Promise<{ data: Attendance[]; total: number }> {
-    const queryBuilder = this.attendanceRepository.createQueryBuilder('attendance');
+    const queryBuilder =
+      this.attendanceRepository.createQueryBuilder('attendance');
 
     if (user.role === Role.EMPLOYEE) {
       queryBuilder.where('attendance.employeeId = :employeeId', {
@@ -110,10 +114,7 @@ export class AttendanceService {
     endDate: Date,
     user: any,
   ): Promise<Attendance[]> {
-    if (
-      user.role === Role.EMPLOYEE &&
-      user.employeeNumber !== employeeId
-    ) {
+    if (user.role === Role.EMPLOYEE && user.employeeNumber !== employeeId) {
       throw new ForbiddenException('You can only view your own attendance');
     }
 
@@ -166,4 +167,4 @@ export class AttendanceService {
 
     return stats;
   }
-} 
+}

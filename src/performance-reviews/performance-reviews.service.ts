@@ -38,7 +38,8 @@ export class PerformanceReviewsService {
     page: number = 1,
     limit: number = 10,
   ): Promise<{ data: PerformanceReview[]; total: number }> {
-    const queryBuilder = this.performanceReviewRepository.createQueryBuilder('review');
+    const queryBuilder =
+      this.performanceReviewRepository.createQueryBuilder('review');
 
     if (user.role === Role.EMPLOYEE) {
       queryBuilder.where('review.employeeId = :employeeId', {
@@ -93,10 +94,15 @@ export class PerformanceReviewsService {
     const review = await this.findOne(id, user);
 
     if (user.role === Role.EMPLOYEE && status !== ReviewStatus.COMPLETED) {
-      throw new ForbiddenException('Employees can only mark reviews as completed');
+      throw new ForbiddenException(
+        'Employees can only mark reviews as completed',
+      );
     }
 
-    if (user.role === Role.MANAGER && review.reviewerId !== user.employeeNumber) {
+    if (
+      user.role === Role.MANAGER &&
+      review.reviewerId !== user.employeeNumber
+    ) {
       throw new ForbiddenException('You can only update your own reviews');
     }
 
@@ -111,7 +117,10 @@ export class PerformanceReviewsService {
   ): Promise<PerformanceReview> {
     const review = await this.findOne(id, user);
 
-    if (user.role !== Role.EMPLOYEE || review.employeeId !== user.employeeNumber) {
+    if (
+      user.role !== Role.EMPLOYEE ||
+      review.employeeId !== user.employeeNumber
+    ) {
       throw new ForbiddenException('Only the employee can add their comments');
     }
 
@@ -127,10 +136,7 @@ export class PerformanceReviewsService {
     employeeId: string,
     user: any,
   ): Promise<PerformanceReview[]> {
-    if (
-      user.role === Role.EMPLOYEE &&
-      user.employeeNumber !== employeeId
-    ) {
+    if (user.role === Role.EMPLOYEE && user.employeeNumber !== employeeId) {
       throw new ForbiddenException('You can only view your own reviews');
     }
 
@@ -139,4 +145,4 @@ export class PerformanceReviewsService {
       order: { reviewDate: 'DESC' },
     });
   }
-} 
+}

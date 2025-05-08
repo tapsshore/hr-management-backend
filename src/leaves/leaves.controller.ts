@@ -69,4 +69,4 @@ export class LeavesController {
   cancelLeave(@Param('id') id: string, @Request() req) {
     return this.leavesService.cancelLeave(id, req.user);
   }
-} 
+}

@@ -73,4 +73,4 @@ export class Attendance {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

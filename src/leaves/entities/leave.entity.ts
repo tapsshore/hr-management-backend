@@ -70,4 +70,4 @@ export class Leave {
 
   @UpdateDateColumn()
   updatedAt: Date;
-} 
+}

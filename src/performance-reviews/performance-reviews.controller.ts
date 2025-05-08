@@ -71,15 +71,19 @@ export class PerformanceReviewsController {
     @Body('comments') comments: string,
     @Request() req,
   ) {
-    return this.performanceReviewsService.addEmployeeComments(id, comments, req.user);
+    return this.performanceReviewsService.addEmployeeComments(
+      id,
+      comments,
+      req.user,
+    );
   }
 
   @ApiOperation({ summary: 'Get all reviews for a specific employee' })
   @Get('employee/:employeeId')
-  getEmployeeReviews(
-    @Param('employeeId') employeeId: string,
-    @Request() req,
-  ) {
-    return this.performanceReviewsService.getEmployeeReviews(employeeId, req.user);
+  getEmployeeReviews(@Param('employeeId') employeeId: string, @Request() req) {
+    return this.performanceReviewsService.getEmployeeReviews(
+      employeeId,
+      req.user,
+    );
   }
-} 
+}

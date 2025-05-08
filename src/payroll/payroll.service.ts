@@ -28,7 +28,9 @@ export class PayrollService {
     });
 
     if (existingPayroll) {
-      throw new BadRequestException('Payroll already exists for this month and year');
+      throw new BadRequestException(
+        'Payroll already exists for this month and year',
+      );
     }
 
     // Calculate net salary
@@ -123,10 +125,7 @@ export class PayrollService {
     endYear: number,
     user: any,
   ): Promise<Payroll[]> {
-    if (
-      user.role === Role.EMPLOYEE &&
-      user.employeeNumber !== employeeId
-    ) {
+    if (user.role === Role.EMPLOYEE && user.employeeNumber !== employeeId) {
       throw new ForbiddenException('You can only view your own payroll');
     }
 
@@ -143,11 +142,7 @@ export class PayrollService {
     });
   }
 
-  async getPayrollStats(
-    month: number,
-    year: number,
-    user: any,
-  ): Promise<any> {
+  async getPayrollStats(month: number, year: number, user: any): Promise<any> {
     if (![Role.ADMIN, Role.HR_MANAGER, Role.HR_OFFICER].includes(user.role)) {
       throw new ForbiddenException('Insufficient permissions');
     }
@@ -188,4 +183,4 @@ export class PayrollService {
 
     return stats;
   }
-} 
+}

@@ -24,4 +24,4 @@ import { Payroll } from '../payroll/entities/payroll.entity';
   providers: [DashboardService],
   exports: [DashboardService],
 })
-export class DashboardModule {} 
+export class DashboardModule {}
