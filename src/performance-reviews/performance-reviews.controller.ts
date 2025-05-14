@@ -27,7 +27,10 @@ export class PerformanceReviewsController {
     private readonly performanceReviewsService: PerformanceReviewsService,
   ) {}
 
-  @ApiOperation({ summary: 'Create a new performance review' })
+  @ApiOperation({ 
+    summary: 'Create a new performance review',
+    description: 'Creates a new performance review for an employee. This operation is restricted to administrators, HR managers, and direct managers. The review details including employee being reviewed, evaluation criteria, ratings, and feedback are provided in the request body. The reviewer information is extracted from the JWT token to track who created the review.'
+  })
   @Roles(Role.ADMIN, Role.HR_MANAGER, Role.MANAGER)
   @Post()
   create(@Body() createReviewDto: CreatePerformanceReviewDto, @Request() req) {
@@ -37,7 +40,10 @@ export class PerformanceReviewsController {
     );
   }
 
-  @ApiOperation({ summary: 'Get all performance reviews' })
+  @ApiOperation({ 
+    summary: 'Get all performance reviews',
+    description: 'Retrieves a paginated list of performance reviews. Regular employees will only see reviews where they are the subject or the reviewer, while HR staff and managers can see reviews for employees they manage. Results can be paginated using page and limit query parameters. The user information is extracted from the JWT token to determine access permissions.'
+  })
   @Get()
   findAll(
     @Query('page') page: number = 1,
@@ -47,13 +53,19 @@ export class PerformanceReviewsController {
     return this.performanceReviewsService.findAll(req.user, page, limit);
   }
 
-  @ApiOperation({ summary: 'Get a performance review by ID' })
+  @ApiOperation({ 
+    summary: 'Get a performance review by ID',
+    description: 'Retrieves detailed information about a specific performance review identified by its ID. This includes ratings, feedback, comments, and status. Regular employees can only access reviews where they are the subject or the reviewer, while HR staff and managers can access reviews for employees they manage. The user information is extracted from the JWT token to determine access permissions.'
+  })
   @Get(':id')
   findOne(@Param('id') id: string, @Request() req) {
     return this.performanceReviewsService.findOne(id, req.user);
   }
 
-  @ApiOperation({ summary: 'Update performance review status' })
+  @ApiOperation({ 
+    summary: 'Update performance review status',
+    description: 'Updates the status of a performance review (e.g., draft, in-progress, completed, acknowledged). The review is identified by its ID, and the new status is provided in the request body. The user information is extracted from the JWT token to determine access permissions and track who performed the status update. Different roles may have different permissions for updating status depending on the current status of the review.'
+  })
   @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,
@@ -63,7 +75,10 @@ export class PerformanceReviewsController {
     return this.performanceReviewsService.updateStatus(id, status, req.user);
   }
 
-  @ApiOperation({ summary: 'Add employee comments to a review' })
+  @ApiOperation({ 
+    summary: 'Add employee comments to a review',
+    description: 'Allows an employee to add their comments or feedback to a performance review where they are the subject. This operation is restricted to employees with the EMPLOYEE role. The review is identified by its ID, and the comments are provided in the request body. The user information is extracted from the JWT token to verify that the employee is the subject of the review and to track who added the comments.'
+  })
   @Roles(Role.EMPLOYEE)
   @Patch(':id/comments')
   addEmployeeComments(
@@ -78,7 +93,10 @@ export class PerformanceReviewsController {
     );
   }
 
-  @ApiOperation({ summary: 'Get all reviews for a specific employee' })
+  @ApiOperation({ 
+    summary: 'Get all reviews for a specific employee',
+    description: 'Retrieves all performance reviews for a specific employee identified by their ID. Regular employees can only access their own reviews, while HR staff and managers can access reviews for employees they manage. The user information is extracted from the JWT token to determine access permissions. This endpoint is useful for viewing an employee\'s performance history over time.'
+  })
   @Get('employee/:employeeId')
   getEmployeeReviews(@Param('employeeId') employeeId: string, @Request() req) {
     return this.performanceReviewsService.getEmployeeReviews(

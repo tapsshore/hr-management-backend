@@ -5,6 +5,12 @@ import { AuthModule } from './auth/auth.module';
 import { EmployeesModule } from './employees/employees.module';
 import { DocumentsModule } from './documents/documents.module';
 import { InvitationsModule } from './invitations/invitations.module';
+import { DashboardModule } from './dashboard/dashboard.module';
+import { DepartmentsModule } from './departments/departments.module';
+import { LeavesModule } from './leaves/leaves.module';
+import { PerformanceReviewsModule } from './performance-reviews/performance-reviews.module';
+import { PayrollModule } from './payroll/payroll.module';
+import { AttendanceModule } from './attendance/attendance.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { MulterModule } from '@nestjs/platform-express';
 import { LoggerModule } from './common/logger/logger.module';
@@ -49,6 +55,12 @@ import { getDatabaseConfig } from './config/database.config';
     EmployeesModule,
     DocumentsModule,
     InvitationsModule,
+    DashboardModule,
+    DepartmentsModule,
+    LeavesModule,
+    PerformanceReviewsModule,
+    PayrollModule,
+    AttendanceModule,
   ],
 })
 export class AppModule {}

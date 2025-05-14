@@ -15,14 +15,22 @@ export class DashboardController {
 
   @Get()
   @Roles(Role.ADMIN, Role.HR_MANAGER, Role.HR_OFFICER)
-  @ApiOperation({ summary: 'Get overall dashboard statistics' })
+  @ApiOperation({
+    summary: 'Get overall dashboard statistics',
+    description:
+      'Retrieves comprehensive statistics for the main dashboard. This includes employee counts, department metrics, leave statistics, attendance data, and other key performance indicators. Requires admin, HR manager, or HR officer role. The user information is extracted from the JWT token to determine access permissions.',
+  })
   getDashboardStats(@Request() req) {
     return this.dashboardService.getDashboardStats(req.user);
   }
 
   @Get('department/:id')
   @Roles(Role.ADMIN, Role.HR_MANAGER, Role.HR_OFFICER)
-  @ApiOperation({ summary: 'Get department-specific dashboard statistics' })
+  @ApiOperation({
+    summary: 'Get department-specific dashboard statistics',
+    description:
+      'Retrieves detailed statistics for a specific department identified by its ID. This includes employee counts, attendance metrics, leave statistics, performance indicators, and other department-specific data. Requires admin, HR manager, or HR officer role. The user information is extracted from the JWT token to determine access permissions.',
+  })
   getDepartmentDashboard(@Param('id') id: string, @Request() req) {
     return this.dashboardService.getDepartmentDashboard(id, req.user);
   }
