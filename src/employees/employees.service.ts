@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -96,5 +97,44 @@ export class EmployeesService {
     const employee = await this.findOne(employeeNumber, user);
     employee.isActive = false;
     await this.employeeRepository.save(employee);
+  }
+
+  async assignRole(
+    employeeNumber: string,
+    role: Role,
+    user: any,
+  ): Promise<Employee> {
+    // Only ADMIN can assign roles
+    if (user.role !== Role.ADMIN) {
+      throw new ForbiddenException('Only ADMIN can assign roles');
+    }
+
+    const employee = await this.findOne(employeeNumber, user);
+
+    // Don't allow changing own role (to prevent ADMIN from accidentally removing their own admin rights)
+    if (employee.employeeNumber === user.employeeNumber) {
+      throw new BadRequestException('Cannot change your own role');
+    }
+
+    employee.role = role;
+    return this.employeeRepository.save(employee);
+  }
+
+  async unassignRole(employeeNumber: string, user: any): Promise<Employee> {
+    // Only ADMIN can unassign roles
+    if (user.role !== Role.ADMIN) {
+      throw new ForbiddenException('Only ADMIN can unassign roles');
+    }
+
+    const employee = await this.findOne(employeeNumber, user);
+
+    // Don't allow changing own role
+    if (employee.employeeNumber === user.employeeNumber) {
+      throw new BadRequestException('Cannot change your own role');
+    }
+
+    // Set role back to EMPLOYEE (default role)
+    employee.role = Role.EMPLOYEE;
+    return this.employeeRepository.save(employee);
   }
 }

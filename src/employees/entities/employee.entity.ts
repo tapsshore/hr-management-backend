@@ -67,6 +67,12 @@ export class Employee {
   @Column({ nullable: true })
   resetTokenExpiresAt: Date;
 
+  @Column({ default: false })
+  isTwoFactorEnabled: boolean;
+
+  @Column({ nullable: true })
+  twoFactorSecret: string;
+
   @Column({ default: true })
   isActive: boolean;
 

@@ -29,6 +29,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Token has been revoked');
     }
 
+    // Check if token has isTwoFactorPending flag
+    if (payload.isTwoFactorPending) {
+      throw new UnauthorizedException('Two-factor authentication required');
+    }
+
+    // If user has 2FA enabled, ensure it's been verified for this session
+    const isTwoFactorEnabled = await this.authService.isTwoFactorEnabled(
+      payload.sub,
+    );
+
+    if (isTwoFactorEnabled && !payload.isTwoFactorVerified) {
+      throw new UnauthorizedException('Two-factor authentication required');
+    }
+
     return {
       id: payload.sub,
       email: payload.email,

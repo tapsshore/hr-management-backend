@@ -1,0 +1,2295 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "description": "Creates a new user account in the system. The registration data including name, email, password, and other required fields are provided in the request body. The first user to register will automatically be assigned the ADMIN role. Subsequent users will be assigned the EMPLOYEE role by default if no role is specified.",
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Register a new user",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "description": "Authenticates a user with their email and password. If successful, returns an access token (JWT) and a refresh token. The access token is used for authenticating subsequent API requests and contains encoded user information. The refresh token can be used to obtain a new access token when the current one expires.",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Login with email and password",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "description": "Generates a new access token (JWT) using a valid refresh token. This endpoint is used when the original access token has expired but the user should remain authenticated. The refresh token is provided in the request body. If the refresh token is valid and has not expired, a new access token and refresh token pair is returned.",
+        "operationId": "AuthController_refresh",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Refresh JWT token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "description": "Initiates the password reset process for a user. The email address of the user is provided in the request body. If the email corresponds to a registered user, a password reset token is generated and sent to the user's email address. This token is required to complete the password reset process using the reset-password endpoint.",
+        "operationId": "AuthController_forgotPassword",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Request password reset",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "description": "Completes the password reset process by setting a new password for the user. The request body must include the reset token that was sent to the user's email (from the forgot-password endpoint), the user's email address, and the new password. If the token is valid and has not expired, the user's password is updated to the new value.",
+        "operationId": "AuthController_resetPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "summary": "Reset password with token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "description": "Logs out the user by invalidating their current access token. This endpoint requires authentication using the JWT token (provided in the Authorization header). The token is extracted from the request headers and added to a blacklist, preventing its use for future API requests. This is important for security when a user explicitly logs out before their token expires.",
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Logout and invalidate token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/generate": {
+      "get": {
+        "description": "Generates a new 2FA secret for the authenticated user and returns the secret along with a QR code that can be scanned with authenticator apps. This is the first step in enabling 2FA for a user account. The secret is stored but not activated until the user verifies it with a valid code using the enable-2fa endpoint.",
+        "operationId": "AuthController_generate2fa",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Generate 2FA secret and QR code",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/enable": {
+      "post": {
+        "description": "Enables 2FA for the authenticated user after verifying the provided authentication code. The user must have previously generated a 2FA secret using the generate-2fa endpoint. The code provided in the request body must be valid for the stored secret. If successful, 2FA will be enabled for the user account, requiring an additional verification step during future login attempts.",
+        "operationId": "AuthController_enable2fa",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Enable2faDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Enable 2FA for user",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/disable": {
+      "post": {
+        "description": "Disables 2FA for the authenticated user. This removes the 2FA requirement for future login attempts. The user will only need their email and password to authenticate after this endpoint is called successfully.",
+        "operationId": "AuthController_disable2fa",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Disable 2FA for user",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/2fa/verify": {
+      "post": {
+        "description": "Verifies the 2FA code provided during login for a user with 2FA enabled. This endpoint is called after a successful password authentication when the user has 2FA enabled. The request body must include the temporary token received from the login endpoint and a valid authentication code from the user's authenticator app. If successful, returns the final access and refresh tokens that can be used for API access.",
+        "operationId": "AuthController_verify2fa",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Verify2faDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Verify 2FA code during login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/departments": {
+      "post": {
+        "description": "Creates a new department in the organization structure. This operation is restricted to administrators and HR managers. The department data including name, description, parent department (if any), and other details are provided in the request body.",
+        "operationId": "DepartmentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDepartmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new department",
+        "tags": [
+          "departments"
+        ]
+      },
+      "get": {
+        "description": "Retrieves a paginated list of all departments in the organization. Results can be paginated using page and limit query parameters. This endpoint is accessible to all authenticated users regardless of their role.",
+        "operationId": "DepartmentsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all departments",
+        "tags": [
+          "departments"
+        ]
+      }
+    },
+    "/departments/hierarchy": {
+      "get": {
+        "description": "Retrieves the complete hierarchical structure of departments in the organization. This includes parent-child relationships between departments, allowing for visualization of the organizational chart. This endpoint is accessible to all authenticated users regardless of their role.",
+        "operationId": "DepartmentsController_getHierarchy",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get department hierarchy",
+        "tags": [
+          "departments"
+        ]
+      }
+    },
+    "/departments/{id}": {
+      "get": {
+        "description": "Retrieves detailed information about a specific department identified by its ID. This includes the department name, description, manager, parent department (if any), and other relevant details. This endpoint is accessible to all authenticated users regardless of their role.",
+        "operationId": "DepartmentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a department by ID",
+        "tags": [
+          "departments"
+        ]
+      },
+      "patch": {
+        "description": "Updates information for a specific department identified by its ID. This operation is restricted to administrators and HR managers. The update data is provided in the request body and may include changes to the department name, description, manager, parent department, or other attributes.",
+        "operationId": "DepartmentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a department",
+        "tags": [
+          "departments"
+        ]
+      },
+      "delete": {
+        "description": "Removes a department from the organization structure. This operation is restricted to administrators only. The department is identified by its ID. This operation may fail if the department has employees assigned to it or if it has child departments. In such cases, employees and child departments must be reassigned before deletion.",
+        "operationId": "DepartmentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a department",
+        "tags": [
+          "departments"
+        ]
+      }
+    },
+    "/departments/{id}/employees": {
+      "get": {
+        "description": "Retrieves a paginated list of employees belonging to a specific department identified by its ID. Results can be paginated using page and limit query parameters. This endpoint is accessible to all authenticated users, but regular employees may only see limited information about their colleagues depending on their role and permissions.",
+        "operationId": "DepartmentsController_getDepartmentEmployees",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get department employees",
+        "tags": [
+          "departments"
+        ]
+      }
+    },
+    "/departments/{id}/stats": {
+      "get": {
+        "description": "Retrieves statistical information about a specific department identified by its ID. This includes metrics such as employee count, average tenure, gender distribution, attendance rates, leave utilization, and other relevant KPIs. This endpoint is accessible to all authenticated users, but the level of detail may vary based on the user's role.",
+        "operationId": "DepartmentsController_getDepartmentStats",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get department statistics",
+        "tags": [
+          "departments"
+        ]
+      }
+    },
+    "/employees": {
+      "post": {
+        "description": "Creates a new employee record in the system. Requires admin, HR manager, or HR officer role. The employee data is provided in the request body, and the creator information is extracted from the JWT token.",
+        "operationId": "EmployeesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEmployeeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new employee",
+        "tags": [
+          "employees"
+        ]
+      },
+      "get": {
+        "description": "Retrieves a paginated list of all employees. Requires admin, HR manager, or HR officer role. Results can be paginated using page and limit query parameters. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "EmployeesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all employees",
+        "tags": [
+          "employees"
+        ]
+      }
+    },
+    "/employees/{employeeNumber}": {
+      "get": {
+        "description": "Retrieves detailed information about a specific employee identified by their employee number. The user information is extracted from the JWT token to determine access permissions. Users can only access their own information or information of employees they have permission to view based on their role.",
+        "operationId": "EmployeesController_findOne",
+        "parameters": [
+          {
+            "name": "employeeNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an employee by employeeNumber",
+        "tags": [
+          "employees"
+        ]
+      },
+      "patch": {
+        "description": "Updates information for a specific employee identified by their employee number. Requires admin, HR manager, or HR officer role. The update data is provided in the request body, and the user information is extracted from the JWT token to determine access permissions and track who made the changes.",
+        "operationId": "EmployeesController_update",
+        "parameters": [
+          {
+            "name": "employeeNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEmployeeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update an employee",
+        "tags": [
+          "employees"
+        ]
+      },
+      "delete": {
+        "description": "Removes an employee record from the system. This operation is restricted to administrators only. The employee is identified by their employee number. The user information is extracted from the JWT token to track who performed the deletion. This operation may be soft delete depending on the implementation.",
+        "operationId": "EmployeesController_remove",
+        "parameters": [
+          {
+            "name": "employeeNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete an employee",
+        "tags": [
+          "employees"
+        ]
+      }
+    },
+    "/employees/{employeeNumber}/role": {
+      "patch": {
+        "description": "Assigns a specific role to an employee. This operation is restricted to administrators only. The employee is identified by their employee number, and the new role is provided in the request body. This endpoint allows administrators to promote employees to different roles such as HR_MANAGER, HR_OFFICER, or MANAGER.",
+        "operationId": "EmployeesController_assignRole",
+        "parameters": [
+          {
+            "name": "employeeNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AssignRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign a role to an employee",
+        "tags": [
+          "employees"
+        ]
+      },
+      "delete": {
+        "description": "Removes any special role from an employee and sets their role back to the default EMPLOYEE role. This operation is restricted to administrators only. The employee is identified by their employee number. This endpoint allows administrators to demote employees who no longer need elevated permissions.",
+        "operationId": "EmployeesController_unassignRole",
+        "parameters": [
+          {
+            "name": "employeeNumber",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Unassign role from an employee",
+        "tags": [
+          "employees"
+        ]
+      }
+    },
+    "/documents": {
+      "post": {
+        "description": "Uploads a new document to the system and associates it with an employee. This operation is restricted to administrators, HR managers, and HR officers. The document metadata is provided in the request body, and the actual file is uploaded as multipart/form-data. The user information is extracted from the JWT token to track who uploaded the document.",
+        "operationId": "DocumentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Upload a new document",
+        "tags": [
+          "documents"
+        ]
+      },
+      "get": {
+        "description": "Retrieves a paginated list of documents associated with a specific employee identified by their employee number. Regular employees can only access their own documents, while HR staff and managers can access documents for employees they manage. Results can be paginated using page and limit query parameters. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "DocumentsController_findAll",
+        "parameters": [
+          {
+            "name": "employeeNumber",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all documents for an employee",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/documents/{id}": {
+      "get": {
+        "description": "Retrieves detailed information about a specific document identified by its ID. This includes metadata about the document and access to the file itself. Regular employees can only access their own documents, while HR staff and managers can access documents for employees they manage. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "DocumentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a document by ID",
+        "tags": [
+          "documents"
+        ]
+      },
+      "patch": {
+        "description": "Updates information for a specific document identified by its ID. This operation is restricted to administrators, HR managers, and HR officers. The update data is provided in the request body, and a new file can be uploaded as multipart/form-data to replace the existing one. The user information is extracted from the JWT token to track who made the changes and to determine access permissions.",
+        "operationId": "DocumentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDocumentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a document",
+        "tags": [
+          "documents"
+        ]
+      },
+      "delete": {
+        "description": "Removes a document from the system. This operation is restricted to administrators only. The document is identified by its ID. This will delete both the metadata and the actual file from storage. The user information is extracted from the JWT token to track who performed the deletion and to determine access permissions.",
+        "operationId": "DocumentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a document",
+        "tags": [
+          "documents"
+        ]
+      }
+    },
+    "/invitations": {
+      "post": {
+        "description": "Creates a new invitation to join the organization. This operation is restricted to administrators and HR managers. The invitation details including email, role, department, and expiration date are provided in the request body. An email with a registration link containing the invitation token will be sent to the specified email address. The user information is extracted from the JWT token to track who created the invitation.",
+        "operationId": "InvitationsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInvitationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create an invitation",
+        "tags": [
+          "invitations"
+        ]
+      }
+    },
+    "/invitations/validate": {
+      "get": {
+        "description": "Validates an invitation token and returns information about the invitation if it is valid. This endpoint is used during the registration process to verify that the invitation token is valid and has not expired. The token is provided as a query parameter. If valid, the response includes details about the invitation such as the associated email, role, and department.",
+        "operationId": "InvitationsController_validateToken",
+        "parameters": [
+          {
+            "name": "token",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Validate an invitation token",
+        "tags": [
+          "invitations"
+        ]
+      }
+    },
+    "/dashboard": {
+      "get": {
+        "description": "Retrieves comprehensive statistics for the main dashboard. This includes employee counts, department metrics, leave statistics, attendance data, and other key performance indicators. Requires admin, HR manager, or HR officer role. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "DashboardController_getDashboardStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get overall dashboard statistics",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/dashboard/department/{id}": {
+      "get": {
+        "description": "Retrieves detailed statistics for a specific department identified by its ID. This includes employee counts, attendance metrics, leave statistics, performance indicators, and other department-specific data. Requires admin, HR manager, or HR officer role. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "DashboardController_getDepartmentDashboard",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get department-specific dashboard statistics",
+        "tags": [
+          "dashboard"
+        ]
+      }
+    },
+    "/leaves": {
+      "post": {
+        "description": "Submits a new leave request for the authenticated employee. The leave details such as start date, end date, type of leave, and reason are provided in the request body. The employee number is extracted from the JWT token. The leave request is initially created with a pending status and requires approval from HR or management.",
+        "operationId": "LeavesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLeaveDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new leave request",
+        "tags": [
+          "leaves"
+        ]
+      },
+      "get": {
+        "description": "Retrieves a paginated list of leave requests. Regular employees will only see their own leave requests, while HR staff and managers can see leave requests for employees they manage. Results can be paginated using page and limit query parameters. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "LeavesController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all leave requests",
+        "tags": [
+          "leaves"
+        ]
+      }
+    },
+    "/leaves/{id}": {
+      "get": {
+        "description": "Retrieves detailed information about a specific leave request identified by its ID. Regular employees can only access their own leave requests, while HR staff and managers can access leave requests for employees they manage. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "LeavesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a leave request by ID",
+        "tags": [
+          "leaves"
+        ]
+      }
+    },
+    "/leaves/{id}/status": {
+      "patch": {
+        "description": "Updates the status of a leave request (approve, reject, etc.). This operation is restricted to administrators, HR managers, and HR officers. The leave request is identified by its ID. If rejecting a leave request, a reason can be provided. The user information is extracted from the JWT token to track who performed the status update and to determine access permissions.",
+        "operationId": "LeavesController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update leave request status",
+        "tags": [
+          "leaves"
+        ]
+      }
+    },
+    "/leaves/{id}/cancel": {
+      "patch": {
+        "description": "Cancels a previously submitted leave request. The leave request is identified by its ID. Employees can only cancel their own leave requests, while administrators and HR staff can cancel any leave request. The user information is extracted from the JWT token to determine access permissions and track who performed the cancellation.",
+        "operationId": "LeavesController_cancelLeave",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Cancel a leave request",
+        "tags": [
+          "leaves"
+        ]
+      }
+    },
+    "/performance-reviews": {
+      "post": {
+        "description": "Creates a new performance review for an employee. This operation is restricted to administrators, HR managers, and direct managers. The review details including employee being reviewed, evaluation criteria, ratings, and feedback are provided in the request body. The reviewer information is extracted from the JWT token to track who created the review.",
+        "operationId": "PerformanceReviewsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePerformanceReviewDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new performance review",
+        "tags": [
+          "performance-reviews"
+        ]
+      },
+      "get": {
+        "description": "Retrieves a paginated list of performance reviews. Regular employees will only see reviews where they are the subject or the reviewer, while HR staff and managers can see reviews for employees they manage. Results can be paginated using page and limit query parameters. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "PerformanceReviewsController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all performance reviews",
+        "tags": [
+          "performance-reviews"
+        ]
+      }
+    },
+    "/performance-reviews/{id}": {
+      "get": {
+        "description": "Retrieves detailed information about a specific performance review identified by its ID. This includes ratings, feedback, comments, and status. Regular employees can only access reviews where they are the subject or the reviewer, while HR staff and managers can access reviews for employees they manage. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "PerformanceReviewsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a performance review by ID",
+        "tags": [
+          "performance-reviews"
+        ]
+      }
+    },
+    "/performance-reviews/{id}/status": {
+      "patch": {
+        "description": "Updates the status of a performance review (e.g., draft, in-progress, completed, acknowledged). The review is identified by its ID, and the new status is provided in the request body. The user information is extracted from the JWT token to determine access permissions and track who performed the status update. Different roles may have different permissions for updating status depending on the current status of the review.",
+        "operationId": "PerformanceReviewsController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update performance review status",
+        "tags": [
+          "performance-reviews"
+        ]
+      }
+    },
+    "/performance-reviews/{id}/comments": {
+      "patch": {
+        "description": "Allows an employee to add their comments or feedback to a performance review where they are the subject. This operation is restricted to employees with the EMPLOYEE role. The review is identified by its ID, and the comments are provided in the request body. The user information is extracted from the JWT token to verify that the employee is the subject of the review and to track who added the comments.",
+        "operationId": "PerformanceReviewsController_addEmployeeComments",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add employee comments to a review",
+        "tags": [
+          "performance-reviews"
+        ]
+      }
+    },
+    "/performance-reviews/employee/{employeeId}": {
+      "get": {
+        "description": "Retrieves all performance reviews for a specific employee identified by their ID. Regular employees can only access their own reviews, while HR staff and managers can access reviews for employees they manage. The user information is extracted from the JWT token to determine access permissions. This endpoint is useful for viewing an employee's performance history over time.",
+        "operationId": "PerformanceReviewsController_getEmployeeReviews",
+        "parameters": [
+          {
+            "name": "employeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all reviews for a specific employee",
+        "tags": [
+          "performance-reviews"
+        ]
+      }
+    },
+    "/payroll": {
+      "post": {
+        "description": "Creates a new payroll record in the system. This operation is restricted to administrators, HR managers, and HR officers. The payroll data including employee information, salary details, deductions, allowances, and payment period are provided in the request body. This endpoint is used for processing monthly payrolls or one-time payments.",
+        "operationId": "PayrollController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePayrollDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new payroll record",
+        "tags": [
+          "payroll"
+        ]
+      },
+      "get": {
+        "description": "Retrieves a paginated list of payroll records. Regular employees will only see their own payroll records, while HR staff and managers can see payroll records for employees they manage. Results can be filtered by month and year, and paginated using page and limit query parameters. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "PayrollController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "year",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all payroll records",
+        "tags": [
+          "payroll"
+        ]
+      }
+    },
+    "/payroll/{id}": {
+      "get": {
+        "description": "Retrieves detailed information about a specific payroll record identified by its ID. This includes salary details, deductions, allowances, payment status, and other relevant information. Regular employees can only access their own payroll records, while HR staff and managers can access payroll records for employees they manage. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "PayrollController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get a payroll record by ID",
+        "tags": [
+          "payroll"
+        ]
+      }
+    },
+    "/payroll/{id}/status": {
+      "post": {
+        "description": "Updates the status of a payroll record (e.g., pending, approved, paid, rejected). This operation is restricted to administrators, HR managers, and HR officers. The payroll record is identified by its ID, and the new status is provided in the request body. The user information is extracted from the JWT token to track who performed the status update and to determine access permissions.",
+        "operationId": "PayrollController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update payroll status",
+        "tags": [
+          "payroll"
+        ]
+      }
+    },
+    "/payroll/employee/{employeeId}": {
+      "get": {
+        "description": "Retrieves payroll records for a specific employee identified by their ID. Results can be filtered by date range using startMonth, startYear, endMonth, and endYear query parameters. Regular employees can only access their own payroll records, while HR staff and managers can access payroll records for employees they manage. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "PayrollController_getEmployeePayroll",
+        "parameters": [
+          {
+            "name": "employeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startMonth",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "startYear",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "endMonth",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "endYear",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get employee payroll records",
+        "tags": [
+          "payroll"
+        ]
+      }
+    },
+    "/payroll/stats": {
+      "get": {
+        "description": "Retrieves aggregated payroll statistics for the organization. This includes metrics like total payroll amount, average salary, salary distribution by department, tax deductions, and other payroll-related KPIs. Results can be filtered by month and year using query parameters. This operation is restricted to administrators, HR managers, and HR officers. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "PayrollController_getPayrollStats",
+        "parameters": [
+          {
+            "name": "month",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "year",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get payroll statistics",
+        "tags": [
+          "payroll"
+        ]
+      }
+    },
+    "/attendance": {
+      "post": {
+        "description": "Records a new attendance entry for the authenticated employee. The attendance details such as check-in time, check-out time, and any notes are provided in the request body. The employee number is extracted from the JWT token. The attendance record may require approval depending on company policy.",
+        "operationId": "AttendanceController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttendanceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create a new attendance record",
+        "tags": [
+          "attendance"
+        ]
+      },
+      "get": {
+        "description": "Retrieves a paginated list of attendance records. Regular employees will only see their own attendance records, while HR staff and managers can see attendance records for employees they manage. Results can be filtered by date range using startDate and endDate query parameters, and paginated using page and limit parameters. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "AttendanceController_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all attendance records",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/attendance/{id}": {
+      "get": {
+        "description": "Retrieves detailed information about a specific attendance record identified by its ID. Regular employees can only access their own attendance records, while HR staff and managers can access attendance records for employees they manage. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "AttendanceController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get an attendance record by ID",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/attendance/{id}/approve": {
+      "patch": {
+        "description": "Approves a pending attendance record. This operation is restricted to administrators, HR managers, and HR officers. The attendance record is identified by its ID. Approval may be required for attendance records that were submitted manually or outside of normal working hours. The user information is extracted from the JWT token to track who performed the approval and to determine access permissions.",
+        "operationId": "AttendanceController_approveAttendance",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Approve an attendance record",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/attendance/employee/{employeeId}": {
+      "get": {
+        "description": "Retrieves attendance records for a specific employee identified by their ID. Results can be filtered by date range using startDate and endDate query parameters. Regular employees can only access their own attendance records, while HR staff and managers can access attendance records for employees they manage. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "AttendanceController_getEmployeeAttendance",
+        "parameters": [
+          {
+            "name": "employeeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get employee attendance records",
+        "tags": [
+          "attendance"
+        ]
+      }
+    },
+    "/attendance/stats": {
+      "get": {
+        "description": "Retrieves aggregated attendance statistics for the organization. This includes metrics like attendance rates, average working hours, late arrivals, early departures, and other attendance-related KPIs. Results can be filtered by date range using startDate and endDate query parameters. This operation is restricted to administrators, HR managers, and HR officers. The user information is extracted from the JWT token to determine access permissions.",
+        "operationId": "AttendanceController_getAttendanceStats",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get attendance statistics",
+        "tags": [
+          "attendance"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "HR Management API",
+    "description": "API for managing employees and documents",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "RegisterDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "example": "Tapiwanashe"
+          },
+          "lastName": {
+            "type": "string",
+            "example": "Shoshore"
+          },
+          "email": {
+            "type": "string",
+            "example": "tapiwanasheshoshore@gmail.com"
+          },
+          "employeeNumber": {
+            "type": "string",
+            "example": "EMP123456"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "example": "+263771792254"
+          },
+          "password": {
+            "type": "string",
+            "example": "StrongP@ss123",
+            "description": "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "HR_MANAGER",
+              "HR_OFFICER",
+              "MANAGER",
+              "EMPLOYEE"
+            ],
+            "example": "EMPLOYEE",
+            "description": "Role will default to EMPLOYEE if not specified. First user will automatically be ADMIN."
+          },
+          "contractStartDate": {
+            "type": "string",
+            "example": "2025-04-27"
+          },
+          "contractEndDate": {
+            "type": "string",
+            "example": "2030-04-27"
+          },
+          "contractType": {
+            "type": "string",
+            "enum": [
+              "Permanent",
+              "Temporary",
+              "Contract"
+            ],
+            "example": "Permanent"
+          },
+          "location": {
+            "type": "string",
+            "example": "Harare, Zimbabwe"
+          },
+          "position": {
+            "type": "string",
+            "example": "Software Engineer"
+          },
+          "departmentId": {
+            "type": "string",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "description": "UUID of the department. Must be a valid UUID."
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "email",
+          "employeeNumber",
+          "phoneNumber",
+          "password",
+          "contractStartDate"
+        ]
+      },
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          },
+          "newPassword": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "newPassword"
+        ]
+      },
+      "Enable2faDto": {
+        "type": "object",
+        "properties": {
+          "twoFactorCode": {
+            "type": "string",
+            "description": "The verification code from the authenticator app",
+            "example": "123456"
+          }
+        },
+        "required": [
+          "twoFactorCode"
+        ]
+      },
+      "Verify2faDto": {
+        "type": "object",
+        "properties": {
+          "twoFactorCode": {
+            "type": "string",
+            "description": "The verification code from the authenticator app",
+            "example": "123456"
+          },
+          "tempToken": {
+            "type": "string",
+            "description": "The temporary token received after successful password authentication",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          }
+        },
+        "required": [
+          "twoFactorCode",
+          "tempToken"
+        ]
+      },
+      "CreateDepartmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "headId": {
+            "type": "string"
+          },
+          "parentDepartmentId": {
+            "type": "string"
+          },
+          "budget": {
+            "type": "number"
+          },
+          "location": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateEmployeeDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "employeeNumber": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "contractStartDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "contractEndDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "contractType": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "email",
+          "employeeNumber",
+          "phoneNumber",
+          "role",
+          "contractStartDate",
+          "contractType",
+          "location",
+          "position",
+          "password"
+        ]
+      },
+      "UpdateEmployeeDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "AssignRoleDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "description": "The role to assign to the employee",
+            "enum": [
+              "ADMIN",
+              "HR_MANAGER",
+              "HR_OFFICER",
+              "MANAGER",
+              "EMPLOYEE"
+            ],
+            "example": "HR_MANAGER"
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "CreateDocumentDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "UpdateDocumentDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateInvitationDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the person to invite",
+            "example": "employee@example.com"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "HR_MANAGER",
+              "HR_OFFICER",
+              "MANAGER",
+              "EMPLOYEE"
+            ],
+            "description": "Role to assign to the invited user (defaults to EMPLOYEE if not specified)",
+            "example": "EMPLOYEE"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "CreateLeaveDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ANNUAL",
+              "SICK",
+              "MATERNITY",
+              "PATERNITY",
+              "UNPAID",
+              "OTHER"
+            ]
+          },
+          "startDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "endDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "startDate",
+          "endDate",
+          "reason"
+        ]
+      },
+      "CreatePerformanceReviewDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string"
+          },
+          "reviewPeriod": {
+            "type": "string"
+          },
+          "overallRating": {
+            "type": "number",
+            "enum": [
+              5,
+              4,
+              3,
+              2,
+              1
+            ]
+          },
+          "strengths": {
+            "type": "string"
+          },
+          "areasForImprovement": {
+            "type": "string"
+          },
+          "goals": {
+            "type": "string"
+          },
+          "comments": {
+            "type": "string"
+          },
+          "reviewDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "nextReviewDate": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "employeeId",
+          "reviewPeriod",
+          "strengths",
+          "areasForImprovement",
+          "goals",
+          "reviewDate"
+        ]
+      },
+      "CreatePayrollDto": {
+        "type": "object",
+        "properties": {
+          "employeeId": {
+            "type": "string"
+          },
+          "month": {
+            "type": "number"
+          },
+          "year": {
+            "type": "number"
+          },
+          "basicSalary": {
+            "type": "number"
+          },
+          "allowances": {
+            "type": "number"
+          },
+          "deductions": {
+            "type": "number"
+          },
+          "overtime": {
+            "type": "number"
+          },
+          "bonuses": {
+            "type": "number"
+          },
+          "paymentMethod": {
+            "type": "string",
+            "enum": [
+              "BANK_TRANSFER",
+              "CHECK",
+              "CASH"
+            ]
+          },
+          "bankAccount": {
+            "type": "string"
+          },
+          "bankName": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "employeeId",
+          "month",
+          "year",
+          "basicSalary"
+        ]
+      },
+      "CreateAttendanceDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "CHECK_IN",
+              "CHECK_OUT"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PRESENT",
+              "ABSENT",
+              "LATE",
+              "HALF_DAY",
+              "ON_LEAVE"
+            ]
+          },
+          "location": {
+            "type": "string"
+          },
+          "deviceInfo": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "date",
+          "time",
+          "type"
+        ]
+      }
+    }
+  }
+}

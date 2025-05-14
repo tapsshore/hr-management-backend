@@ -13,6 +13,7 @@ import {
 import { EmployeesService } from './employees.service';
 import { CreateEmployeeDto } from './dto/create-employee.dto';
 import { UpdateEmployeeDto } from './dto/update-employee.dto';
+import { AssignRoleDto } from './dto/assign-role.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -90,5 +91,38 @@ export class EmployeesController {
   @Delete(':employeeNumber')
   remove(@Param('employeeNumber') employeeNumber: string, @Request() req) {
     return this.employeesService.remove(employeeNumber, req.user);
+  }
+
+  @ApiOperation({
+    summary: 'Assign a role to an employee',
+    description:
+      'Assigns a specific role to an employee. This operation is restricted to administrators only. The employee is identified by their employee number, and the new role is provided in the request body. This endpoint allows administrators to promote employees to different roles such as HR_MANAGER, HR_OFFICER, or MANAGER.',
+  })
+  @Roles(Role.ADMIN)
+  @Patch(':employeeNumber/role')
+  assignRole(
+    @Param('employeeNumber') employeeNumber: string,
+    @Body() assignRoleDto: AssignRoleDto,
+    @Request() req,
+  ) {
+    return this.employeesService.assignRole(
+      employeeNumber,
+      assignRoleDto.role,
+      req.user,
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Unassign role from an employee',
+    description:
+      'Removes any special role from an employee and sets their role back to the default EMPLOYEE role. This operation is restricted to administrators only. The employee is identified by their employee number. This endpoint allows administrators to demote employees who no longer need elevated permissions.',
+  })
+  @Roles(Role.ADMIN)
+  @Delete(':employeeNumber/role')
+  unassignRole(
+    @Param('employeeNumber') employeeNumber: string,
+    @Request() req,
+  ) {
+    return this.employeesService.unassignRole(employeeNumber, req.user);
   }
 }
