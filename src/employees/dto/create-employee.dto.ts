@@ -23,14 +23,14 @@ export class CreateEmployeeDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: 'EMP123456' })
   @IsString()
-  @Matches(/^[A-Za-z0-9]+$/)
+  @Matches(/^[A-Za-z0-9]+$/, { message: 'Employee number must contain only alphanumeric characters' })
   employeeNumber: string;
 
-  @ApiProperty()
+  @ApiProperty({ example: '+263771792254' })
   @IsString()
-  @Matches(/^\+?[1-9]\d{1,14}$/)
+  @Matches(/^\+?[1-9]\d{1,14}$/, { message: 'Phone number must be in E.164 format' })
   phoneNumber: string;
 
   @ApiProperty()

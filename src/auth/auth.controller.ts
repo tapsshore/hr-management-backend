@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { Enable2faDto } from './dto/enable-2fa.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -58,18 +59,22 @@ export class AuthController {
       "Initiates the password reset process for a user. The email address of the user is provided in the request body. If the email corresponds to a registered user, a password reset token is generated and sent to the user's email address. This token is required to complete the password reset process using the reset-password endpoint.",
   })
   @Post('forgot-password')
-  async forgotPassword(@Body('email') email: string) {
-    return this.authService.forgotPassword(email);
+  @HttpCode(200)
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    await this.authService.forgotPassword(forgotPasswordDto.email);
+    return { message: 'If your email is registered, you will receive password reset instructions' };
   }
 
   @ApiOperation({
     summary: 'Reset password with token',
     description:
-      "Completes the password reset process by setting a new password for the user. The request body must include the reset token that was sent to the user's email (from the forgot-password endpoint), the user's email address, and the new password. If the token is valid and has not expired, the user's password is updated to the new value.",
+      "Completes the password reset process by setting a new password for the user. The request body must include the reset token that was sent to the user's email (from the forgot-password endpoint) and the new password. If the token is valid and has not expired, the user's password is updated to the new value.",
   })
   @Post('reset-password')
+  @HttpCode(200)
   async resetPassword(@Body() resetPasswordDto: ResetPasswordDto) {
-    return this.authService.resetPassword(resetPasswordDto);
+    await this.authService.resetPassword(resetPasswordDto);
+    return { message: 'Password has been successfully reset' };
   }
 
   @ApiOperation({

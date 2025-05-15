@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { authenticator } from 'otplib';
 import * as qrcode from 'qrcode';
 import { DepartmentsService } from '../departments/departments.service';
+import { EmailsService } from '../emails/emails.service';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +37,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private departmentsService: DepartmentsService,
+    private emailsService: EmailsService,
   ) {
     // Clean up expired blacklisted tokens periodically
     setInterval(() => this.cleanupBlacklist(), 3600000); // Run every hour
@@ -186,10 +188,13 @@ export class AuthService {
       resetTokenExpiresAt: expiresAt,
     });
 
-    // TODO: Send email with reset link (e.g., http://frontend.com/reset-password?token=resetToken)
-    console.log(
-      `Reset link: http://localhost:3000/auth/reset-password?token=${resetToken}`,
-    );
+    // Send email with reset link
+    await this.emailsService.sendPasswordResetEmail(email, resetToken);
+    
+    // Log for development/debugging
+    const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+    console.log(`Reset token generated for ${email}: ${resetToken}`);
+    console.log(`Reset link: ${frontendUrl}/reset-password?token=${resetToken}`);
   }
 
   async resetPassword(dto: ResetPasswordDto): Promise<void> {

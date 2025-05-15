@@ -2013,10 +2013,12 @@
             "type": "string"
           },
           "employeeNumber": {
-            "type": "string"
+            "type": "string",
+            "example": "EMP123456"
           },
           "phoneNumber": {
-            "type": "string"
+            "type": "string",
+            "example": "+263771792254"
           },
           "role": {
             "type": "string"

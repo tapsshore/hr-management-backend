@@ -16,6 +16,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { LoggerModule } from './common/logger/logger.module';
 import { BadRequestException } from '@nestjs/common';
 import { getDatabaseConfig } from './config/database.config';
+import { EmailsModule } from './emails/emails.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { getDatabaseConfig } from './config/database.config';
     PerformanceReviewsModule,
     PayrollModule,
     AttendanceModule,
+    EmailsModule,
   ],
 })
 export class AppModule {}
