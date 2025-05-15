@@ -15,6 +15,8 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { Enable2faDto } from './dto/enable-2fa.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
+import { DebugLoginDto } from './dto/debug-login.dto';
+import { UpdatePasswordDto } from './dto/update-password.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -62,7 +64,10 @@ export class AuthController {
   @HttpCode(200)
   async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
     await this.authService.forgotPassword(forgotPasswordDto.email);
-    return { message: 'If your email is registered, you will receive password reset instructions' };
+    return {
+      message:
+        'If your email is registered, you will receive password reset instructions',
+    };
   }
 
   @ApiOperation({
@@ -138,5 +143,31 @@ export class AuthController {
   @Post('2fa/verify')
   async verify2fa(@Body() dto: Verify2faDto) {
     return this.authService.verify2fa(dto);
+  }
+
+  @ApiOperation({
+    summary: 'Debug login issues (DEV ONLY)',
+    description:
+      'Development-only endpoint to debug login issues. Provides detailed information about the login attempt.',
+  })
+  @HttpCode(200)
+  @Post('debug-login')
+  async debugLogin(@Body() debugLoginDto: DebugLoginDto) {
+    return this.authService.debugLogin(debugLoginDto);
+  }
+
+  @ApiOperation({
+    summary: 'Update user password (DEV ONLY)',
+    description:
+      'Development-only endpoint to update a user password directly.',
+  })
+  @HttpCode(200)
+  @Post('update-password')
+  async updatePassword(@Body() updatePasswordDto: UpdatePasswordDto) {
+    await this.authService.updateUserPassword(
+      updatePasswordDto.email,
+      updatePasswordDto.newPassword,
+    );
+    return { message: 'Password updated successfully' };
   }
 }

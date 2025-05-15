@@ -16,6 +16,7 @@ import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Enable2faDto } from './dto/enable-2fa.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
+import { DebugLoginDto } from './dto/debug-login.dto';
 import { Role } from '../common/enums/role.enum';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
@@ -190,11 +191,14 @@ export class AuthService {
 
     // Send email with reset link
     await this.emailsService.sendPasswordResetEmail(email, resetToken);
-    
+
     // Log for development/debugging
-    const frontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+    const frontendUrl =
+      this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
     console.log(`Reset token generated for ${email}: ${resetToken}`);
-    console.log(`Reset link: ${frontendUrl}/reset-password?token=${resetToken}`);
+    console.log(
+      `Reset link: ${frontendUrl}/reset-password?token=${resetToken}`,
+    );
   }
 
   async resetPassword(dto: ResetPasswordDto): Promise<void> {
@@ -383,5 +387,52 @@ export class AuthService {
     } catch (error) {
       console.error('Error cleaning up token blacklist:', error);
     }
+  }
+
+  async debugLogin(debugLoginDto: DebugLoginDto): Promise<any> {
+    const employee = await this.employeeRepository.findOne({
+      where: { email: debugLoginDto.email },
+    });
+
+    if (!employee) {
+      throw new UnauthorizedException('Employee not found');
+    }
+
+    const isMatch = await bcrypt.compare(
+      debugLoginDto.password,
+      employee.password,
+    );
+
+    // Generate a new hash for the provided password
+    const newHash = await bcrypt.hash(debugLoginDto.password, 10);
+
+    // Create a simple debug response
+    return {
+      employeeFound: true,
+      passwordMatch: isMatch,
+      providedPassword: debugLoginDto.password,
+      storedHashedPassword: employee.password,
+      newHashedPassword: newHash,
+      passwordDetails: {
+        length: debugLoginDto.password.length,
+        hasSpecialChars: /[!@#$%^&*(),.?":{}|<>]/.test(debugLoginDto.password),
+      },
+    };
+  }
+
+  async updateUserPassword(email: string, newPassword: string): Promise<void> {
+    const employee = await this.employeeRepository.findOne({
+      where: { email },
+    });
+
+    if (!employee) {
+      throw new UnauthorizedException('Employee not found');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await this.employeeRepository.update(employee.id, {
+      password: hashedPassword,
+    });
   }
 }
