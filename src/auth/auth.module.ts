@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { PasswordService } from './password.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Employee } from '../employees/entities/employee.entity';
 import { Invitation } from '../invitations/entities/invitation.entity';
@@ -28,7 +29,7 @@ import { EmailsModule } from '../emails/emails.module';
     EmailsModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService],
+  providers: [AuthService, JwtStrategy, PasswordService],
+  exports: [AuthService, PasswordService],
 })
 export class AuthModule {}

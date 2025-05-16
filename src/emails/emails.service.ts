@@ -6,6 +6,7 @@ import * as nodemailer from 'nodemailer';
 export class EmailsService {
   private readonly logger = new Logger(EmailsService.name);
   private transporter: nodemailer.Transporter;
+  private isEtherealAccount = false;
 
   constructor(private configService: ConfigService) {
     // For development, we can use a test account from ethereal.email
@@ -19,7 +20,7 @@ export class EmailsService {
     const port = this.configService.get('SMTP_PORT');
     const user = this.configService.get('SMTP_USER');
     const pass = this.configService.get('SMTP_PASS');
-    
+
     if (host && port && user && pass) {
       // Use production credentials
       this.transporter = nodemailer.createTransport({
@@ -31,7 +32,9 @@ export class EmailsService {
           pass,
         },
       });
-      this.logger.log('Email service initialized with production SMTP credentials');
+      this.logger.log(
+        'Email service initialized with production SMTP credentials',
+      );
     } else {
       // Create test account for development
       try {
@@ -45,6 +48,7 @@ export class EmailsService {
             pass: testAccount.pass,
           },
         });
+        this.isEtherealAccount = true;
         this.logger.log(`Test email account created: ${testAccount.user}`);
         this.logger.log('Email preview URL will be logged when sending emails');
       } catch (error) {
@@ -54,9 +58,10 @@ export class EmailsService {
   }
 
   async sendPasswordResetEmail(email: string, token: string): Promise<void> {
-    const resetUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+    const resetUrl =
+      this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
     const resetLink = `${resetUrl}/reset-password?token=${token}`;
-    
+
     try {
       const info = await this.transporter.sendMail({
         from: '"HR Management System" <noreply@hrmanagement.com>',
@@ -81,12 +86,15 @@ export class EmailsService {
       });
 
       // If using test account, log the URL to view the email
-      if (info.messageId && this.transporter.options.host === 'smtp.ethereal.email') {
+      if (info.messageId && this.isEtherealAccount) {
         this.logger.log(`Message sent: ${info.messageId}`);
         this.logger.log(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
       }
     } catch (error) {
-      this.logger.error(`Failed to send password reset email to ${email}`, error);
+      this.logger.error(
+        `Failed to send password reset email to ${email}`,
+        error,
+      );
       // We don't throw the error to avoid revealing email existence
     }
   }

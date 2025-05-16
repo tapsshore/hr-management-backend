@@ -17,6 +17,7 @@ import { Enable2faDto } from './dto/enable-2fa.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
 import { DebugLoginDto } from './dto/debug-login.dto';
 import { UpdatePasswordDto } from './dto/update-password.dto';
+import { AdminRehashDto } from './dto/admin-rehash.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -169,5 +170,16 @@ export class AuthController {
       updatePasswordDto.newPassword,
     );
     return { message: 'Password updated successfully' };
+  }
+  
+  @ApiOperation({
+    summary: 'Rehash all passwords (ADMIN ONLY)',
+    description:
+      'Administrative endpoint to rehash all passwords using the new hashing method. All passwords will be reset to a default value.',
+  })
+  @HttpCode(200)
+  @Post('rehash-all-passwords')
+  async rehashAllPasswords(@Body() adminRehashDto: AdminRehashDto) {
+    return this.authService.rehashAllPasswords(adminRehashDto.adminSecret);
   }
 }

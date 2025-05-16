@@ -11,6 +11,7 @@ import { Invitation } from '../invitations/entities/invitation.entity';
 import { TokenBlacklist } from './entities/token-blacklist.entity';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { PasswordService } from './password.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -39,6 +40,7 @@ export class AuthService {
     private configService: ConfigService,
     private departmentsService: DepartmentsService,
     private emailsService: EmailsService,
+    private passwordService: PasswordService,
   ) {
     // Clean up expired blacklisted tokens periodically
     setInterval(() => this.cleanupBlacklist(), 3600000); // Run every hour
@@ -84,7 +86,7 @@ export class AuthService {
       }
     }
 
-    const hashedPassword = await bcrypt.hash(registerDto.password, 10);
+    const hashedPassword = await this.passwordService.hashPassword(registerDto.password);
     const employee = this.employeeRepository.create({
       ...registerDto,
       password: hashedPassword,
@@ -105,10 +107,16 @@ export class AuthService {
     const employee = await this.employeeRepository.findOne({
       where: { email: loginDto.email },
     });
-    if (
-      !employee ||
-      !(await bcrypt.compare(loginDto.password, employee.password))
-    ) {
+    if (!employee) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    
+    const passwordMatch = await this.passwordService.comparePassword(
+      loginDto.password,
+      employee.password
+    );
+    
+    if (!passwordMatch) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
@@ -212,7 +220,7 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired reset token');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.newPassword, 10);
+    const hashedPassword = await this.passwordService.hashPassword(dto.newPassword);
     await this.employeeRepository.update(employee.id, {
       password: hashedPassword,
       resetToken: null,
@@ -398,13 +406,13 @@ export class AuthService {
       throw new UnauthorizedException('Employee not found');
     }
 
-    const isMatch = await bcrypt.compare(
+    const isMatch = await this.passwordService.comparePassword(
       debugLoginDto.password,
-      employee.password,
+      employee.password
     );
 
     // Generate a new hash for the provided password
-    const newHash = await bcrypt.hash(debugLoginDto.password, 10);
+    const newHash = await this.passwordService.hashPassword(debugLoginDto.password);
 
     // Create a simple debug response
     return {
@@ -429,10 +437,44 @@ export class AuthService {
       throw new UnauthorizedException('Employee not found');
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await this.passwordService.hashPassword(newPassword);
 
     await this.employeeRepository.update(employee.id, {
       password: hashedPassword,
     });
+  }
+  
+  async rehashAllPasswords(adminSecret: string): Promise<{ count: number, message: string }> {
+    // Validate admin secret
+    const configuredSecret = this.configService.get<string>('ADMIN_SECRET') || 'dev-secret-key';
+    if (adminSecret !== configuredSecret) {
+      throw new UnauthorizedException('Invalid admin secret');
+    }
+    
+    // Find all users
+    const employees = await this.employeeRepository.find();
+    let updatedCount = 0;
+    
+    // For each user with a fixed password, update to the new format
+    for (const employee of employees) {
+      try {
+        // Set a default password for each user (you can modify this logic)
+        const defaultPassword = 'Pa$$w0rd!'; // Default password for all users
+        const hashedPassword = await this.passwordService.hashPassword(defaultPassword);
+        
+        await this.employeeRepository.update(employee.id, {
+          password: hashedPassword,
+        });
+        
+        updatedCount++;
+      } catch (error) {
+        console.error(`Failed to update password for ${employee.email}:`, error);
+      }
+    }
+    
+    return { 
+      count: updatedCount,
+      message: `Successfully updated ${updatedCount} of ${employees.length} passwords`
+    };
   }
 }
